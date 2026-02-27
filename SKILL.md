@@ -1,6 +1,6 @@
 ---
 name: likes-training-planner
-description: Generate training plans in Likes system format and push to Likes calendar via API. Use when user needs to create structured training schedules (running, cycling, swimming, strength) that can be pushed to the My Likes platform. Handles plan generation, code formatting (name field), API authentication, and batch push operations.
+description: Complete training plan solution for My Likes platform. Fetches historical data, analyzes training patterns, generates personalized plans, converts to Likes format, and pushes to calendar. All-in-one skill for running, cycling, swimming, and strength training.
 homepage: https://github.com/chenwynn/likes-training-planner
 metadata:
   {
@@ -15,102 +15,111 @@ metadata:
 
 # Likes Training Planner
 
-Generate training plans compatible with My Likes platform and push them to user's calendar.
+Complete training plan solution for My Likes platform. **One skill does it all**: fetch data → analyze → generate → push.
 
 ## Quick Start
 
 ### 1. Configure API Key
 
-**Option A: OpenClaw Skill Center (Recommended)**
-- Open OpenClaw Control UI → Skills
-- Find "likes-training-planner"
-- Enter your Likes API Key in the form
+**OpenClaw Skill Center (Recommended):**
+1. Open http://127.0.0.1:18789 → Skills
+2. Find "likes-training-planner" 🏃
+3. Click Configure, enter your Likes API Key
+4. Save
 
-**Option B: Command Line**
+Get API Key: https://my.likes.com.cn → 设置 → API 文档
+
+### 2. Use the Skill
+
+Just ask:
+> "分析我过去30天的运动数据"
+> 
+> "根据我的记录，生成下周的训练计划"
+> 
+> "帮我制定一个8周马拉松备赛计划"
+> 
+> "推送计划到我的 Likes 日历"
+
+## Complete Workflow
+
+### Step 1: Fetch Data
+
 ```bash
-cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
-node scripts/configure.cjs
+# Fetch last 30 days
+node scripts/fetch_activities.cjs --days 30 --output data.json
+
+# Or specific date range
+node scripts/fetch_activities.cjs --start 2026-02-01 --end 2026-02-28 --output data.json
 ```
 
-**Option C: Environment Variable**
+### Step 2: Analyze
+
 ```bash
-export LIKES_API_KEY=your-api-key
+node scripts/analyze_data.cjs data.json
 ```
 
-Get your API Key from: https://my.likes.com.cn → 设置 → API 文档
+Output includes:
+- Total runs, distance, time
+- Average pace, frequency
+- Training characteristics
+- Personalized recommendations
 
-### 2. Generate a Training Plan
+### Step 3: Generate Plan
 
-Ask the user for:
-- Goal (marathon prep, fat loss, base building, etc.)
-- Duration (weeks)
-- Weekly frequency (3-5 days)
-- Available days (Mon, Wed, Fri, etc.)
-- Current fitness level
-
-### 3. Format for Likes API
-
-Convert the plan to Likes-compatible JSON format. Each session needs:
-- `name`: Training code following Likes format (see references/code-format.md)
-- `title`: Display name (max 20 chars)
-- `start`: Date in YYYY-MM-DD format
-- `weight`: Intensity marker (q1/q2/q3/xuanxiu)
-- `type`: Training type (qingsong, xiuxi, e, lsd, m, t, i, r, ft, com, ch, jili, max, drift, other)
-- `sports`: 1=running, 2=cycling, 3=strength, 5=swimming, 254=other
-- `description`: Optional notes
-
-### 4. Push to Likes
-
-Use the push script:
-```bash
-# If configured via Skill Center or configure.cjs
-node scripts/push_plans.cjs plans.json
-
-# Or with API key inline
-node scripts/push_plans.cjs --key YOUR_KEY plans.json
+Based on analysis, create a plan:
+```json
+{
+  "plans": [
+    {
+      "name": "40min@(HRR+1.0~2.0)",
+      "title": "轻松有氧跑",
+      "start": "2026-03-10",
+      "weight": "q3",
+      "type": "qingsong",
+      "sports": 1,
+      "description": "根据近期数据，保持有氧基础"
+    }
+  ]
+}
 ```
 
-## Configuration
-
-### Option 1: Skill Center (Recommended)
-OpenClaw Control UI → Skills → likes-training-planner → Configure
-
-### Option 2: Configuration File
-
-Run once:
-```bash
-node scripts/configure.cjs
-```
-
-Config stored at: `~/.openclaw/likes-training-planner.json`
-
-### Option 3: Environment Variable
+### Step 4: Push to Calendar
 
 ```bash
-export LIKES_API_KEY=lt_xxxxxxxxxxxx
 node scripts/push_plans.cjs plans.json
 ```
 
-### Option 4: Command Line
+## Scripts Reference
 
-```bash
-node scripts/push_plans.cjs --key lt_xxxxxxxxxxxx plans.json
-```
+| Script | Purpose |
+|--------|---------|
+| `fetch_activities.cjs` | Download training history from Likes API |
+| `analyze_data.cjs` | Analyze patterns and generate insights |
+| `push_plans.cjs` | Push generated plans to Likes calendar |
+| `configure.cjs` | Interactive configuration wizard |
+| `set-config.cjs` | Quick config setter |
 
-Priority: CLI `--key` > Environment variable > Config file > Skill Center
+## Data Analysis Features
+
+The skill automatically analyzes:
+- **Frequency**: How often you train
+- **Volume**: Total distance and time
+- **Intensity**: Pace distribution and trends
+- **Pattern**: Training characteristics (e.g., "high frequency, short distance, aerobic")
+- **Recommendations**: Personalized suggestions
 
 ## Training Code Format (name field)
 
 Format: `task1;task2;...`
 
 **Basic task**: `duration@(type+range)`
-- Examples: `30min@(HRR+1.0~2.0)`, `5km@(PACE+5'00~4'30)`
+- `30min@(HRR+1.0~2.0)` - 30 min easy run
+- `5km@(PACE+5'00~4'30)` - 5km with pace target
 
 **Interval group**: `{task1;task2}xN`
-- Example: `{5min@(HRR+3.0~4.0);1min@(rest)}x3`
+- `{5min@(HRR+3.0~4.0);1min@(rest)}x3` - 3 sets of 5min hard + 1min rest
 
-**Rest**: `duration@(rest)` (parentheses required)
-- Example: `2min@(rest)`
+**Rest**: `2min@(rest)` - 2 minutes rest
 
 ### Intensity Types
 
@@ -130,9 +139,8 @@ Format: `task1;task2;...`
 | OPEN | Open-ended | `OPEN+1` |
 
 ### Duration Units
-
 - `min` = minutes
-- `s` = seconds
+- `s` = seconds  
 - `m` = meters
 - `km` = kilometers
 - `c` = count/reps
@@ -166,39 +174,61 @@ Format: `task1;task2;...`
 | q3 | Green | Low intensity |
 | xuanxiu | Blue | Optional/recovery |
 
-## Example Plan Generation
+## Example Usage
 
-**Input**: "I need a 4-week base building plan, 4 days/week, easy pace"
+### Analyze and Generate in One Go
 
-**Output** (JSON for API):
+```bash
+# Fetch and analyze
+cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
+node scripts/fetch_activities.cjs --days 14 | node scripts/analyze_data.cjs
+```
+
+### Create Weekly Plan
+
+Based on analysis results, create `week_plan.json`:
+
 ```json
 {
   "plans": [
     {
-      "name": "40min@(HRR+1.0~2.0)",
-      "title": "轻松有氧跑",
-      "start": "2026-03-01",
+      "name": "30min@(HRR+1.0~2.0)",
+      "title": "周一轻松跑",
+      "start": "2026-03-10",
       "weight": "q3",
       "type": "qingsong",
-      "sports": 1,
-      "description": "Week 1 - Day 1: 基础有氧"
+      "sports": 1
+    },
+    {
+      "name": "10min@(HRR+1.0~2.0);{1000m@(VDOT+4.0~5.0);2min@(rest)}x4;10min@(HRR+1.0~2.0)",
+      "title": "周三间歇",
+      "start": "2026-03-12",
+      "weight": "q2",
+      "type": "i",
+      "sports": 1
     }
   ]
 }
 ```
 
+Then push:
+```bash
+node scripts/push_plans.cjs week_plan.json
+```
+
+## Configuration
+
+### Priority (highest to lowest):
+1. Command line `--key`
+2. Environment variable `LIKES_API_KEY`
+3. Config file `~/.openclaw/likes-training-planner.json`
+4. OpenClaw Skill Center config
+
 ## References
 
-- **Code format details**: See [references/code-format.md](references/code-format.md)
-- **Sport-specific examples**: See [references/sport-examples.md](references/sport-examples.md)
-- **API documentation**: See [references/api-docs.md](references/api-docs.md)
-
-## Scripts
-
-- `scripts/configure.cjs` - Configure API key and settings (interactive)
-- `scripts/set-config.cjs` - Quick config setter (command line)
-- `scripts/push_plans.cjs` - Push plans to Likes API
-- `scripts/push_plans.sh` - Shell wrapper
+- **Code format**: [references/code-format.md](references/code-format.md)
+- **Sport examples**: [references/sport-examples.md](references/sport-examples.md)
+- **API docs**: [references/api-docs.md](references/api-docs.md)
 
 ## Installation
 

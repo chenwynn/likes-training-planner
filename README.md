@@ -1,144 +1,172 @@
-# Likes Training Planner Skill
+# Likes Training Planner Skill 🏃
 
-为 My Likes 运动平台生成训练计划并推送到日历的 OpenClaw Skill。
+**All-in-one training plan solution for My Likes platform**
 
-## 功能
+Fetch data → Analyze → Generate → Push. One skill does it all.
 
-- 根据用户运动数据生成个性化训练计划
-- 自动转换为 Likes 系统支持的课表格式
-- 一键推送到 Likes 日历
-- 支持跑步、骑行、游泳、力量训练
-- **OpenClaw Skill Center 集成** - 图形化配置界面
+## ✨ Features
 
-## 安装
+- 📊 **Data Fetching** - Automatically download your training history
+- 📈 **Smart Analysis** - Analyze patterns: frequency, volume, intensity
+- 🎯 **Plan Generation** - Create personalized training plans
+- 📝 **Format Conversion** - Convert to Likes-compatible code format
+- 🚀 **One-Click Push** - Push plans directly to your Likes calendar
+- 🎨 **Skill Center UI** - Configure via OpenClaw Control UI
 
-### 方式 1：一键安装（推荐）
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chenwynn/likes-training-planner/main/install.sh | bash
 ```
 
-### 方式 2：手动安装
+### Configuration
 
-1. 下载 skill 文件：
-```bash
-curl -L -o likes-training-planner.skill \
-  https://github.com/chenwynn/likes-training-planner/releases/latest/download/likes-training-planner.skill
-```
+**Method 1: OpenClaw Skill Center (Recommended)**
+1. Open http://127.0.0.1:18789 → **Skills**
+2. Find **likes-training-planner** 🏃
+3. Click **Configure**, enter your Likes API Key
+4. Save
 
-2. 解压到 OpenClaw skills 目录：
-```bash
-unzip likes-training-planner.skill -d /opt/homebrew/lib/node_modules/openclaw/skills/
-```
-
-3. 重启 OpenClaw
-
-### 方式 3：源码安装
-
-```bash
-git clone https://github.com/chenwynn/likes-training-planner.git
-cp -r likes-training-planner /opt/homebrew/lib/node_modules/openclaw/skills/
-```
-
-## 配置
-
-### 方式 1：OpenClaw Skill Center（推荐）
-
-1. 打开 OpenClaw Control UI (http://127.0.0.1:18789)
-2. 点击 **Skills**
-3. 找到 **likes-training-planner** 🏃
-4. 点击 **Configure**
-5. 在表单中输入你的 **Likes API Key**
-6. 保存
-
-<img src="https://github.com/chenwynn/likes-training-planner/raw/main/assets/skill-center.png" width="600" alt="Skill Center Configuration">
-
-### 方式 2：命令行配置
-
+**Method 2: Command Line**
 ```bash
 cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
 node scripts/configure.cjs
 ```
 
-### 获取 API Key
+Get your API Key: https://my.likes.com.cn → 设置 → API 文档
 
-1. 登录 [my.likes.com.cn](https://my.likes.com.cn)
-2. 进入 **设置 → API 文档**
-3. 复制你的 API Key
+### Usage
 
-### 其他配置方式
-
-**环境变量：**
-```bash
-export LIKES_API_KEY=your-api-key
-```
-
-**命令行参数：**
-```bash
-node scripts/push_plans.cjs --key your-api-key plans.json
-```
-
-## 使用方法
-
-配置完成后，对 OpenClaw 说：
-
-> "帮我生成一个 4 周马拉松备赛计划"
+Just ask OpenClaw:
+> "分析我过去30天的运动数据"
 > 
-> "根据我的运动记录，生成下周的训练计划"
+> "根据我的记录，生成下周的训练计划"
 > 
-> "推送计划到我的 Likes 日历"
+> "帮我制定一个8周马拉松备赛计划"
 
-## 课表代码格式
+## 📋 Complete Workflow
 
-Likes 系统的 `name` 字段使用特定格式：
+### 1. Fetch Data
+```bash
+node scripts/fetch_activities.cjs --days 30 --output data.json
+```
+
+### 2. Analyze
+```bash
+node scripts/analyze_data.cjs data.json
+```
+
+Output example:
+```json
+{
+  "period": { "days": 30, "start": "2026-02-01", "end": "2026-03-01" },
+  "summary": {
+    "totalRuns": 45,
+    "totalKm": 156.5,
+    "avgDailyKm": 5.2,
+    "frequency": 1.5
+  },
+  "characteristics": "高频次、中等距离、有氧基础",
+  "recommendations": ["可以适当增加间歇训练", "周末尝试更长距离"]
+}
+```
+
+### 3. Generate Plan
+Create a JSON file with your plan:
+```json
+{
+  "plans": [
+    {
+      "name": "40min@(HRR+1.0~2.0)",
+      "title": "轻松有氧",
+      "start": "2026-03-10",
+      "weight": "q3",
+      "type": "qingsong",
+      "sports": 1
+    }
+  ]
+}
+```
+
+### 4. Push to Calendar
+```bash
+node scripts/push_plans.cjs plan.json
+```
+
+## 📚 Scripts Reference
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `fetch_activities.cjs` | Download training history | `--days 30 --output data.json` |
+| `analyze_data.cjs` | Analyze patterns | `analyze_data.cjs data.json` |
+| `push_plans.cjs` | Push to Likes calendar | `push_plans.cjs plan.json` |
+| `configure.cjs` | Interactive setup | `configure.cjs` |
+| `set-config.cjs` | Quick config | `set-config.cjs API_KEY` |
+
+## 🔧 Training Code Format
+
+Likes `name` field format:
 
 ```
-# 简单任务
+# Simple task
 duration@(type+range)
 30min@(HRR+1.0~2.0)
 
-# 间歇组
+# Interval group  
 {task1;task2}xN
 {5min@(HRR+3.0~4.0);1min@(rest)}x3
 
-# 完整示例
-10min@(HRR+1.0~2.0);{1000m@(VDOT+4.0~5.0);2min@(rest)}x5;10min@(HRR+1.0~2.0)
+# Complete workout
+10min@(HRR+1.0~2.0);{1000m@(VDOT+4.0~5.0);2min@(rest)}x4;10min@(HRR+1.0~2.0)
 ```
 
-详见 `references/code-format.md`
+See [references/code-format.md](likes-training-planner/references/code-format.md) for complete guide.
 
-## 文件结构
+## 📁 File Structure
 
 ```
 likes-training-planner/
-├── SKILL.md                    # Skill 主文档（含 metadata）
-├── README.md                   # 使用说明
-├── install.sh                  # 一键安装脚本
+├── SKILL.md                    # Main documentation
 ├── references/
-│   ├── api-docs.md            # API 文档
-│   ├── code-format.md         # 课表代码格式规范
-│   └── sport-examples.md      # 运动示例
+│   ├── api-docs.md            # API documentation
+│   ├── code-format.md         # Code format reference
+│   └── sport-examples.md      # Training examples
 └── scripts/
-    ├── configure.cjs          # ⭐ 交互式配置向导
-    ├── set-config.cjs         # 快速配置工具
-    ├── push_plans.cjs         # 推送脚本
-    └── push_plans.sh          # Shell 包装
+    ├── fetch_activities.cjs   # ⭐ NEW: Download data
+    ├── analyze_data.cjs       # ⭐ NEW: Analyze patterns
+    ├── push_plans.cjs         # Push plans
+    ├── configure.cjs          # Setup wizard
+    └── set-config.cjs         # Quick config
 ```
 
-## 更新日志
+## 🆕 Changelog
 
-### v1.2
-- 添加 OpenClaw Skill Center 支持
-- 图形化配置界面
-- 自动检测 Node.js 模块类型（.cjs）
+### v1.3 - Complete Solution
+- ✅ Added `fetch_activities.cjs` - automatic data download
+- ✅ Added `analyze_data.cjs` - smart training analysis
+- ✅ One skill does everything: fetch → analyze → generate → push
+- ✅ No separate MCP server needed
 
-### v1.1
-- 新增配置向导
-- 支持多种认证方式
+### v1.2 - Skill Center Integration
+- ✅ OpenClaw Skill Center support
+- ✅ Graphical configuration UI
+- ✅ .cjs scripts for ES module compatibility
 
-### v1.0
-- 初始版本
+### v1.1 - Configuration Support
+- ✅ Configuration wizard
+- ✅ Multiple auth methods
 
-## License
+### v1.0 - Initial Release
+- ✅ Basic plan generation and push
+
+## 📝 License
 
 MIT
+
+## 🔗 Links
+
+- **Repository**: https://github.com/chenwynn/likes-training-planner
+- **Releases**: https://github.com/chenwynn/likes-training-planner/releases
+- **My Likes**: https://my.likes.com.cn
