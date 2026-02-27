@@ -8,10 +8,11 @@
 - 自动转换为 Likes 系统支持的课表格式
 - 一键推送到 Likes 日历
 - 支持跑步、骑行、游泳、力量训练
+- **自动管理 API Key**，无需每次输入
 
 ## 安装
 
-### 方式 1：自动安装（推荐）
+### 方式 1：一键安装（推荐）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chenwynn/likes-training-planner/main/install.sh | bash
@@ -21,7 +22,8 @@ curl -fsSL https://raw.githubusercontent.com/chenwynn/likes-training-planner/mai
 
 1. 下载 skill 文件：
 ```bash
-curl -L -o likes-training-planner.skill https://github.com/chenwynn/likes-training-planner/releases/latest/download/likes-training-planner.skill
+curl -L -o likes-training-planner.skill \
+  https://github.com/chenwynn/likes-training-planner/releases/latest/download/likes-training-planner.skill
 ```
 
 2. 解压到 OpenClaw skills 目录：
@@ -38,36 +40,47 @@ git clone https://github.com/chenwynn/likes-training-planner.git
 cp -r likes-training-planner /opt/homebrew/lib/node_modules/openclaw/skills/
 ```
 
+## 配置
+
+### 第一步：获取 API Key
+
+1. 登录 [my.likes.com.cn](https://my.likes.com.cn)
+2. 进入 **设置 → API 文档**
+3. 复制你的 API Key
+
+### 第二步：配置 Skill
+
+运行配置向导：
+```bash
+cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
+node scripts/configure.js
+```
+
+按提示输入 API Key 即可。
+
+配置会保存在 `~/.openclaw/likes-training-planner.json`，以后无需重复输入。
+
+### 其他配置方式
+
+**环境变量：**
+```bash
+export LIKES_API_KEY=your-api-key
+```
+
+**命令行参数：**
+```bash
+node scripts/push_plans.js --key your-api-key plans.json
+```
+
 ## 使用方法
 
-安装后，对 OpenClaw 说：
+配置完成后，对 OpenClaw 说：
 
 > "帮我生成一个 4 周马拉松备赛计划"
 > 
 > "根据我的运动记录，生成下周的训练计划"
 > 
 > "推送计划到我的 Likes 日历"
-
-## 配置
-
-需要 My Likes Open API Key：
-1. 登录 my.likes.com.cn
-2. 进入设置 → API 文档
-3. 获取 API Key
-
-## 文件结构
-
-```
-likes-training-planner/
-├── SKILL.md                    # Skill 主文档
-├── references/
-│   ├── api-docs.md            # API 文档
-│   ├── code-format.md         # 课表代码格式规范
-│   └── sport-examples.md      # 运动示例
-└── scripts/
-    ├── push_plans.js          # 推送脚本
-    └── push_plans.sh          # Shell 包装
-```
 
 ## 课表代码格式
 
@@ -87,6 +100,32 @@ duration@(type+range)
 ```
 
 详见 `references/code-format.md`
+
+## 文件结构
+
+```
+likes-training-planner/
+├── SKILL.md                    # Skill 主文档
+├── references/
+│   ├── api-docs.md            # API 文档
+│   ├── code-format.md         # 课表代码格式规范
+│   └── sport-examples.md      # 运动示例
+└── scripts/
+    ├── configure.js           # ⭐ 配置向导（新增）
+    ├── push_plans.js          # 推送脚本
+    └── push_plans.sh          # Shell 包装
+```
+
+## 更新日志
+
+### v1.1
+- 新增配置向导 `configure.js`
+- 支持多种认证方式（配置文件、环境变量、命令行）
+- 优化错误提示
+
+### v1.0
+- 初始版本
+- 基础计划生成和推送功能
 
 ## License
 
