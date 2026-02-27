@@ -5,7 +5,6 @@ set -e
 
 SKILL_NAME="likes-training-planner"
 SKILL_URL="https://github.com/chenwynn/likes-training-planner/releases/latest/download/likes-training-planner.skill"
-OPENCLAW_SKILLS_DIR="/opt/homebrew/lib/node_modules/openclaw/skills"
 
 echo "📦 Installing Likes Training Planner Skill..."
 
@@ -68,8 +67,12 @@ rm -rf "$TMP_DIR"
 echo "✅ Installation complete!"
 echo ""
 echo "📝 Next steps:"
-echo "1. Restart OpenClaw or wait for next session"
-echo "2. Get your Likes API Key from my.likes.com.cn"
+echo "1. Configure your API Key:"
+echo "   - OpenClaw Control UI → Skills → likes-training-planner → Configure"
+echo "   - Or run: cd $SKILLS_DIR/$SKILL_NAME && node scripts/configure.cjs"
+echo ""
+echo "2. Get your API Key from: https://my.likes.com.cn → 设置 → API 文档"
+echo ""
 echo "3. Start using: '帮我生成一个训练计划'"
 echo ""
 echo "📚 Documentation: https://github.com/chenwynn/likes-training-planner"

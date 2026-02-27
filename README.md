@@ -8,7 +8,7 @@
 - 自动转换为 Likes 系统支持的课表格式
 - 一键推送到 Likes 日历
 - 支持跑步、骑行、游泳、力量训练
-- **自动管理 API Key**，无需每次输入
+- **OpenClaw Skill Center 集成** - 图形化配置界面
 
 ## 安装
 
@@ -42,23 +42,29 @@ cp -r likes-training-planner /opt/homebrew/lib/node_modules/openclaw/skills/
 
 ## 配置
 
-### 第一步：获取 API Key
+### 方式 1：OpenClaw Skill Center（推荐）
+
+1. 打开 OpenClaw Control UI (http://127.0.0.1:18789)
+2. 点击 **Skills**
+3. 找到 **likes-training-planner** 🏃
+4. 点击 **Configure**
+5. 在表单中输入你的 **Likes API Key**
+6. 保存
+
+<img src="https://github.com/chenwynn/likes-training-planner/raw/main/assets/skill-center.png" width="600" alt="Skill Center Configuration">
+
+### 方式 2：命令行配置
+
+```bash
+cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
+node scripts/configure.cjs
+```
+
+### 获取 API Key
 
 1. 登录 [my.likes.com.cn](https://my.likes.com.cn)
 2. 进入 **设置 → API 文档**
 3. 复制你的 API Key
-
-### 第二步：配置 Skill
-
-运行配置向导：
-```bash
-cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
-node scripts/configure.js
-```
-
-按提示输入 API Key 即可。
-
-配置会保存在 `~/.openclaw/likes-training-planner.json`，以后无需重复输入。
 
 ### 其他配置方式
 
@@ -69,7 +75,7 @@ export LIKES_API_KEY=your-api-key
 
 **命令行参数：**
 ```bash
-node scripts/push_plans.js --key your-api-key plans.json
+node scripts/push_plans.cjs --key your-api-key plans.json
 ```
 
 ## 使用方法
@@ -105,27 +111,33 @@ duration@(type+range)
 
 ```
 likes-training-planner/
-├── SKILL.md                    # Skill 主文档
+├── SKILL.md                    # Skill 主文档（含 metadata）
+├── README.md                   # 使用说明
+├── install.sh                  # 一键安装脚本
 ├── references/
 │   ├── api-docs.md            # API 文档
 │   ├── code-format.md         # 课表代码格式规范
 │   └── sport-examples.md      # 运动示例
 └── scripts/
-    ├── configure.js           # ⭐ 配置向导（新增）
-    ├── push_plans.js          # 推送脚本
+    ├── configure.cjs          # ⭐ 交互式配置向导
+    ├── set-config.cjs         # 快速配置工具
+    ├── push_plans.cjs         # 推送脚本
     └── push_plans.sh          # Shell 包装
 ```
 
 ## 更新日志
 
+### v1.2
+- 添加 OpenClaw Skill Center 支持
+- 图形化配置界面
+- 自动检测 Node.js 模块类型（.cjs）
+
 ### v1.1
-- 新增配置向导 `configure.js`
-- 支持多种认证方式（配置文件、环境变量、命令行）
-- 优化错误提示
+- 新增配置向导
+- 支持多种认证方式
 
 ### v1.0
 - 初始版本
-- 基础计划生成和推送功能
 
 ## License
 

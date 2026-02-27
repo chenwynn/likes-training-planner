@@ -1,6 +1,16 @@
 ---
 name: likes-training-planner
 description: Generate training plans in Likes system format and push to Likes calendar via API. Use when user needs to create structured training schedules (running, cycling, swimming, strength) that can be pushed to the My Likes platform. Handles plan generation, code formatting (name field), API authentication, and batch push operations.
+homepage: https://github.com/chenwynn/likes-training-planner
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🏃",
+        "requires": { "env": ["LIKES_API_KEY"] },
+        "primaryEnv": "LIKES_API_KEY",
+      },
+  }
 ---
 
 # Likes Training Planner
@@ -11,20 +21,23 @@ Generate training plans compatible with My Likes platform and push them to user'
 
 ### 1. Configure API Key
 
-Run the configuration wizard:
+**Option A: OpenClaw Skill Center (Recommended)**
+- Open OpenClaw Control UI → Skills
+- Find "likes-training-planner"
+- Enter your Likes API Key in the form
+
+**Option B: Command Line**
 ```bash
 cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
-node scripts/configure.js
+node scripts/configure.cjs
 ```
 
-You'll be prompted to enter:
-- **API Key**: Your My Likes Open API key (from my.likes.com.cn → 设置 → API 文档)
-- **Base URL**: (optional, defaults to https://my.likes.com.cn)
-
-Or set environment variable:
+**Option C: Environment Variable**
 ```bash
 export LIKES_API_KEY=your-api-key
 ```
+
+Get your API Key from: https://my.likes.com.cn → 设置 → API 文档
 
 ### 2. Generate a Training Plan
 
@@ -50,38 +63,41 @@ Convert the plan to Likes-compatible JSON format. Each session needs:
 
 Use the push script:
 ```bash
-# If configured via configure.js
-node scripts/push_plans.js plans.json
+# If configured via Skill Center or configure.cjs
+node scripts/push_plans.cjs plans.json
 
 # Or with API key inline
-node scripts/push_plans.js --key YOUR_KEY plans.json
+node scripts/push_plans.cjs --key YOUR_KEY plans.json
 ```
 
 ## Configuration
 
-### Option 1: Configuration File (Recommended)
+### Option 1: Skill Center (Recommended)
+OpenClaw Control UI → Skills → likes-training-planner → Configure
+
+### Option 2: Configuration File
 
 Run once:
 ```bash
-node scripts/configure.js
+node scripts/configure.cjs
 ```
 
 Config stored at: `~/.openclaw/likes-training-planner.json`
 
-### Option 2: Environment Variable
+### Option 3: Environment Variable
 
 ```bash
 export LIKES_API_KEY=lt_xxxxxxxxxxxx
-node scripts/push_plans.js plans.json
+node scripts/push_plans.cjs plans.json
 ```
 
-### Option 3: Command Line
+### Option 4: Command Line
 
 ```bash
-node scripts/push_plans.js --key lt_xxxxxxxxxxxx plans.json
+node scripts/push_plans.cjs --key lt_xxxxxxxxxxxx plans.json
 ```
 
-Priority: CLI `--key` > Environment variable > Config file
+Priority: CLI `--key` > Environment variable > Config file > Skill Center
 
 ## Training Code Format (name field)
 
@@ -179,6 +195,13 @@ Format: `task1;task2;...`
 
 ## Scripts
 
-- `scripts/configure.js` - Configure API key and settings
-- `scripts/push_plans.js` - Push plans to Likes API
-- `scripts/push_plans.sh` - Shell wrapper (legacy)
+- `scripts/configure.cjs` - Configure API key and settings (interactive)
+- `scripts/set-config.cjs` - Quick config setter (command line)
+- `scripts/push_plans.cjs` - Push plans to Likes API
+- `scripts/push_plans.sh` - Shell wrapper
+
+## Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chenwynn/likes-training-planner/main/install.sh | bash
+```

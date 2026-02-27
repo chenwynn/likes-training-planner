@@ -1,21 +1,38 @@
 #!/usr/bin/env node
 /**
  * Push training plans to Likes API
- * Usage: node push_plans.js <api_key> <plans.json>
+ * Usage: node push_plans.js <plans.json>
+ *    or: node push_plans.js --key <api_key> <plans.json>
  */
 
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = 'my.likes.com.cn';
+const CONFIG_FILE = path.join(require('os').homedir(), '.openclaw', 'likes-training-planner.json');
 
-function pushPlans(apiKey, plansData) {
+function loadConfig() {
+  if (fs.existsSync(CONFIG_FILE)) {
+    try {
+      return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    } catch (e) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function getBaseUrl(config) {
+  const url = config.baseUrl || 'my.likes.com.cn';
+  return url.replace(/^https?:\/\//, '');
+}
+
+function pushPlans(apiKey, baseUrl, plansData) {
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify(plansData);
     
     const options = {
-      hostname: BASE_URL,
+      hostname: baseUrl,
       path: '/api/open/plans/push',
       method: 'POST',
       headers: {
@@ -49,29 +66,68 @@ function pushPlans(apiKey, plansData) {
   });
 }
 
+function showUsage() {
+  console.log('Usage: node push_plans.js [options] <plans.json>');
+  console.log('');
+  console.log('Options:');
+  console.log('  --key <api_key>    Use specific API key (instead of config file)');
+  console.log('  --help             Show this help');
+  console.log('');
+  console.log('Configuration:');
+  console.log('  Run: node configure.js');
+  console.log('  Or set environment variable: LIKES_API_KEY=xxx');
+}
+
 async function main() {
   const args = process.argv.slice(2);
   
-  if (args.length < 2) {
-    console.error('Usage: node push_plans.js <api_key> <plans.json>');
-    console.error('  or:  node push_plans.js --env <plans.json>  (reads API_KEY from env)');
+  if (args.length === 0 || args.includes('--help')) {
+    showUsage();
+    process.exit(0);
+  }
+  
+  let apiKey = null;
+  let plansFile = null;
+  
+  // Parse args
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--key' && i + 1 < args.length) {
+      apiKey = args[i + 1];
+      i++;
+    } else if (!plansFile && !args[i].startsWith('--')) {
+      plansFile = args[i];
+    }
+  }
+  
+  if (!plansFile) {
+    console.error('Error: Please specify a plans.json file');
+    showUsage();
     process.exit(1);
   }
-
-  let apiKey, plansFile;
   
-  if (args[0] === '--env') {
-    apiKey = process.env.LIKES_API_KEY;
-    if (!apiKey) {
-      console.error('Error: LIKES_API_KEY environment variable not set');
-      process.exit(1);
-    }
-    plansFile = args[1];
-  } else {
-    apiKey = args[0];
-    plansFile = args[1];
+  // Load config
+  const config = loadConfig();
+  const baseUrl = getBaseUrl(config);
+  
+  // Get API key (priority: arg > env > config file)
+  if (!apiKey) {
+    apiKey = process.env.LIKES_API_KEY || config.apiKey;
   }
-
+  
+  if (!apiKey) {
+    console.error('Error: No API key found');
+    console.error('');
+    console.error('Please configure the skill:');
+    console.error('  node configure.js');
+    console.error('');
+    console.error('Or provide via command line:');
+    console.error('  node push_plans.js --key YOUR_KEY plans.json');
+    console.error('');
+    console.error('Or set environment variable:');
+    console.error('  LIKES_API_KEY=xxx node push_plans.js plans.json');
+    process.exit(1);
+  }
+  
   if (!fs.existsSync(plansFile)) {
     console.error(`Error: File not found: ${plansFile}`);
     process.exit(1);
@@ -91,11 +147,11 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Pushing ${plansData.plans.length} plan(s) to Likes...`);
+  console.log(`Pushing ${plansData.plans.length} plan(s) to Likes (${baseUrl})...`);
   console.log('');
 
   try {
-    const result = await pushPlans(apiKey, plansData);
+    const result = await pushPlans(apiKey, baseUrl, plansData);
     
     console.log('Result:');
     console.log(`  Total: ${result.total}`);
