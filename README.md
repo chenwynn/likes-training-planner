@@ -2,13 +2,14 @@
 
 **All-in-one training plan solution for My Likes platform**
 
-Fetch data → Analyze → Generate → Push. One skill does it all.
+Fetch data → Analyze → Generate → Preview → Confirm → Push. One skill does it all.
 
 ## ✨ Features
 
 - 📊 **Data Fetching** - Automatically download your training history
 - 📈 **Smart Analysis** - Analyze patterns: frequency, volume, intensity
 - 🎯 **Plan Generation** - Create personalized training plans
+- 👀 **Plan Preview** - Review before pushing (NEW in v1.4)
 - 📝 **Format Conversion** - Convert to Likes-compatible code format
 - 🚀 **One-Click Push** - Push plans directly to your Likes calendar
 - 🎨 **Skill Center UI** - Configure via OpenClaw Control UI
@@ -90,9 +91,37 @@ Create a JSON file with your plan:
 }
 ```
 
-### 4. Push to Calendar
+### 4. Preview and Confirm ⭐ (v1.4)
+
+**Always review before pushing!**
+
 ```bash
-node scripts/push_plans.cjs plan.json
+node scripts/preview_plan.cjs plans.json
+```
+
+Shows:
+- 📅 Day-by-day breakdown
+- 📊 Weekly summary
+- 🏃 Training type distribution
+- ⚡ Intensity distribution
+
+You'll be asked:
+- `[Y]` Confirm and push
+- `[N]` Cancel
+- `[E]` Edit the plan file first
+
+### 5. Push to Calendar
+
+After confirmation:
+
+```bash
+node scripts/push_plans.cjs plans.json
+```
+
+**One-command workflow with preview:**
+```bash
+# Preview first
+node scripts/preview_plan.cjs plans.json && node scripts/push_plans.cjs plans.json
 ```
 
 ## 📚 Scripts Reference
@@ -101,7 +130,8 @@ node scripts/push_plans.cjs plan.json
 |--------|---------|-------|
 | `fetch_activities.cjs` | Download training history | `--days 30 --output data.json` |
 | `analyze_data.cjs` | Analyze patterns | `analyze_data.cjs data.json` |
-| `push_plans.cjs` | Push to Likes calendar | `push_plans.cjs plan.json` |
+| `preview_plan.cjs` | ⭐ Display plan for user review (v1.4) | `preview_plan.cjs plans.json` |
+| `push_plans.cjs` | Push to Likes calendar | `push_plans.cjs plans.json` |
 | `configure.cjs` | Interactive setup | `configure.cjs` |
 | `set-config.cjs` | Quick config | `set-config.cjs API_KEY` |
 
@@ -134,14 +164,21 @@ likes-training-planner/
 │   ├── code-format.md         # Code format reference
 │   └── sport-examples.md      # Training examples
 └── scripts/
-    ├── fetch_activities.cjs   # ⭐ NEW: Download data
-    ├── analyze_data.cjs       # ⭐ NEW: Analyze patterns
+    ├── fetch_activities.cjs   # ⭐ Download data
+    ├── analyze_data.cjs       # ⭐ Analyze patterns
+    ├── preview_plan.cjs       # ⭐ NEW v1.4: Preview & confirm
     ├── push_plans.cjs         # Push plans
     ├── configure.cjs          # Setup wizard
     └── set-config.cjs         # Quick config
 ```
 
 ## 🆕 Changelog
+
+### v1.4 - Preview & Confirmation Workflow ⭐ LATEST
+- ✅ Added `preview_plan.cjs` - preview before pushing
+- ✅ Mandatory review workflow: preview → confirm → push
+- ✅ Clear visualization of weekly schedule
+- ✅ User confirmation required before push
 
 ### v1.3 - Complete Solution
 - ✅ Added `fetch_activities.cjs` - automatic data download
