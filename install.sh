@@ -1,5 +1,6 @@
 #!/bin/bash
 # Likes Training Planner Skill Installer
+# IMPORTANT: Must be installed to ~/.openclaw/workspace/skills/
 
 set -e
 
@@ -7,26 +8,42 @@ SKILL_NAME="likes-training-planner"
 SKILL_URL="https://github.com/chenwynn/likes-training-planner/releases/latest/download/likes-training-planner.skill"
 
 echo "📦 Installing Likes Training Planner Skill..."
+echo ""
 
-# Detect OpenClaw skills directory
-if [ -d "/opt/homebrew/lib/node_modules/openclaw/skills" ]; then
-    SKILLS_DIR="/opt/homebrew/lib/node_modules/openclaw/skills"
-elif [ -d "/usr/local/lib/node_modules/openclaw/skills" ]; then
-    SKILLS_DIR="/usr/local/lib/node_modules/openclaw/skills"
-elif [ -d "$HOME/.openclaw/skills" ]; then
-    SKILLS_DIR="$HOME/.openclaw/skills"
+# Detect correct OpenClaw workspace skills directory
+# Priority:
+# 1. ~/.openclaw/workspace/skills/ (recommended)
+# 2. Fallback to other locations
+
+if [ -d "$HOME/.openclaw/workspace/skills" ]; then
+    SKILLS_DIR="$HOME/.openclaw/workspace/skills"
+    echo "✓ Found OpenClaw workspace skills directory"
+elif [ -d "$HOME/.openclaw/workspace" ]; then
+    # Create the skills subdirectory
+    SKILLS_DIR="$HOME/.openclaw/workspace/skills"
+    mkdir -p "$SKILLS_DIR"
+    echo "✓ Created OpenClaw workspace/skills directory"
 else
-    echo "❌ Error: Could not find OpenClaw skills directory"
-    echo "Please manually specify: ./install.sh /path/to/skills"
+    echo "❌ Error: Could not find OpenClaw workspace directory"
+    echo ""
+    echo "Expected location: ~/.openclaw/workspace/skills/"
+    echo ""
+    echo "Please ensure OpenClaw is properly installed."
     exit 1
 fi
 
-# Allow override
-if [ -n "$1" ]; then
-    SKILLS_DIR="$1"
-fi
+echo "📁 Install location: $SKILLS_DIR/$SKILL_NAME"
+echo ""
 
-echo "📁 Skills directory: $SKILLS_DIR"
+# Verify it's the correct location (not workspace root)
+if [[ "$SKILLS_DIR" == *"/workspace" ]] && [[ ! "$SKILLS_DIR" == *"/workspace/skills" ]]; then
+    echo "❌ Error: Cannot install directly to workspace/"
+    echo "   Must install to workspace/skills/ subdirectory"
+    echo ""
+    echo "Creating correct directory structure..."
+    SKILLS_DIR="$SKILLS_DIR/skills"
+    mkdir -p "$SKILLS_DIR"
+fi
 
 # Create temp directory
 TMP_DIR=$(mktemp -d)
@@ -57,22 +74,41 @@ if [ -d "$SKILLS_DIR/$SKILL_NAME" ]; then
     rm -rf "$SKILLS_DIR/$SKILL_NAME"
 fi
 
-# Extract skill
-echo "📂 Extracting..."
+# Extract skill to correct location
+echo "📂 Extracting to $SKILLS_DIR/..."
 unzip -q "$SKILL_NAME.skill" -d "$SKILLS_DIR/"
+
+# Verify installation
+if [ -d "$SKILLS_DIR/$SKILL_NAME" ]; then
+    echo "✅ Skill extracted successfully"
+else
+    echo "❌ Error: Failed to extract skill"
+    exit 1
+fi
 
 # Cleanup
 rm -rf "$TMP_DIR"
 
-echo "✅ Installation complete!"
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "✅ Installation Complete!"
+echo "════════════════════════════════════════════════════════════"
+echo ""
+echo "📍 Installed to: $SKILLS_DIR/$SKILL_NAME"
 echo ""
 echo "📝 Next steps:"
-echo "1. Configure your API Key:"
-echo "   - OpenClaw Control UI → Skills → likes-training-planner → Configure"
-echo "   - Or run: cd $SKILLS_DIR/$SKILL_NAME && node scripts/configure.cjs"
+echo "1. Restart OpenClaw:"
+echo "   openclaw gateway restart"
 echo ""
-echo "2. Get your API Key from: https://my.likes.com.cn → 设置 → API 文档"
+echo "2. Open OpenClaw Control UI:"
+echo "   http://127.0.0.1:18789"
 echo ""
-echo "3. Start using: '帮我生成一个训练计划'"
+echo "3. Go to Skills → likes-training-planner → Configure"
+echo ""
+echo "4. Enter your Likes API Key"
+echo "   (Get it from: https://my.likes.com.cn → 设置 → API 文档)"
+echo ""
+echo "5. Start using: '帮我生成一个训练计划'"
 echo ""
 echo "📚 Documentation: https://github.com/chenwynn/likes-training-planner"
+echo "════════════════════════════════════════════════════════════"

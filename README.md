@@ -4,37 +4,55 @@
 
 Fetch data → Analyze → Generate → Preview → Confirm → Push. One skill does it all.
 
-## ✨ Features
+## ⚠️ Important: Installation Location
 
-- 📊 **Data Fetching** - Automatically download your training history
-- 📈 **Smart Analysis** - Analyze patterns: frequency, volume, intensity
-- 🎯 **Plan Generation** - Create personalized training plans
-- 👀 **Plan Preview** - Review before pushing (NEW in v1.4)
-- 📝 **Format Conversion** - Convert to Likes-compatible code format
-- 🚀 **One-Click Push** - Push plans directly to your Likes calendar
-- 🎨 **Skill Center UI** - Configure via OpenClaw Control UI
+**You MUST install to the correct directory for the skill to work properly:**
+
+✅ **Correct location:**
+```
+~/.openclaw/workspace/skills/likes-training-planner/
+```
+
+❌ **Wrong locations (will NOT show API key input box):**
+```
+~/.openclaw/workspace/likes-training-planner/          # Wrong: workspace root
+~/.openclaw/skills/likes-training-planner/            # Wrong: missing workspace
+/opt/homebrew/.../openclaw/skills/likes-training-planner/  # Wrong: built-in dir
+```
 
 ## 🚀 Quick Start
 
 ### Installation
 
+**Method 1: One-line install (Recommended)**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chenwynn/likes-training-planner/main/install.sh | bash
 ```
 
+**Method 2: Manual install**
+```bash
+# 1. Download
+cd ~/.openclaw/workspace/skills
+curl -L -o likes-training-planner.skill \
+  https://github.com/chenwynn/likes-training-planner/releases/latest/download/likes-training-planner.skill
+
+# 2. Extract (must be in workspace/skills/ directory)
+unzip -q likes-training-planner.skill
+rm likes-training-planner.skill
+
+# 3. Restart OpenClaw
+openclaw gateway restart
+```
+
 ### Configuration
 
-**Method 1: OpenClaw Skill Center (Recommended)**
+**OpenClaw Skill Center (Recommended):**
 1. Open http://127.0.0.1:18789 → **Skills**
 2. Find **likes-training-planner** 🏃
 3. Click **Configure**, enter your Likes API Key
 4. Save
 
-**Method 2: Command Line**
-```bash
-cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
-node scripts/configure.cjs
-```
+**Note:** The API Key input box will always be visible (showing `********` when saved), allowing you to view or modify it anytime.
 
 Get your API Key: https://my.likes.com.cn → 设置 → API 文档
 
@@ -51,6 +69,7 @@ Just ask OpenClaw:
 
 ### 1. Fetch Data
 ```bash
+cd ~/.openclaw/workspace/skills/likes-training-planner
 node scripts/fetch_activities.cjs --days 30 --output data.json
 ```
 
@@ -103,7 +122,7 @@ Shows:
 - 📅 Day-by-day breakdown
 - 📊 Weekly summary
 - 🏃 Training type distribution
-- ⚡ Intensity distribution
+- ⚡ Intensity breakdown
 
 You'll be asked:
 - `[Y]` Confirm and push
@@ -157,7 +176,7 @@ See [references/code-format.md](likes-training-planner/references/code-format.md
 ## 📁 File Structure
 
 ```
-likes-training-planner/
+~/.openclaw/workspace/skills/likes-training-planner/  ← MUST be here!
 ├── SKILL.md                    # Main documentation
 ├── references/
 │   ├── api-docs.md            # API documentation
@@ -207,3 +226,37 @@ MIT
 - **Repository**: https://github.com/chenwynn/likes-training-planner
 - **Releases**: https://github.com/chenwynn/likes-training-planner/releases
 - **My Likes**: https://my.likes.com.cn
+
+## ❓ Troubleshooting
+
+### API Key input box not showing?
+
+**Check installation location:**
+```bash
+# Should show: ~/.openclaw/workspace/skills/likes-training-planner/
+ls ~/.openclaw/workspace/skills/likes-training-planner/
+
+# If installed elsewhere, move it:
+mv ~/.openclaw/workspace/likes-training-planner ~/.openclaw/workspace/skills/
+openclaw gateway restart
+```
+
+### Skill not appearing in Skill Center?
+
+1. Check directory structure:
+   ```bash
+   ls ~/.openclaw/workspace/skills/
+   # Should show: likes-training-planner/
+   ```
+
+2. Verify SKILL.md exists:
+   ```bash
+   cat ~/.openclaw/workspace/skills/likes-training-planner/SKILL.md | head -10
+   ```
+
+3. Restart OpenClaw:
+   ```bash
+   openclaw gateway restart
+   ```
+
+4. Hard refresh browser (Cmd+Shift+R)
