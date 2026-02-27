@@ -86,13 +86,14 @@ Based on analysis, create a plan:
 **Always review before pushing!**
 
 ```bash
+# Preview the plan
 node scripts/preview_plan.cjs plans.json
 ```
 
 This displays:
 - 📅 Day-by-day training schedule
 - 📊 Weekly summary
-- 🏃 Type distribution
+- 🏃 Training type distribution
 - ⚡ Intensity breakdown
 
 Then asks for confirmation:
@@ -244,7 +245,7 @@ Format: `task1;task2;...`
 
 ### Duration Units
 - `min` = minutes
-- `s` = seconds
+- `s` = seconds  
 - `m` = meters
 - `km` = kilometers
 - `c` = count/reps
