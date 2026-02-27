@@ -15,7 +15,7 @@ metadata:
 
 # Likes Training Planner
 
-Complete training plan solution for My Likes platform. **One skill does it all**: fetch data → analyze → generate → push.
+Complete training plan solution for My Likes platform. **One skill does it all**: fetch data → analyze → generate → preview → confirm → push.
 
 ## Quick Start
 
@@ -37,8 +37,6 @@ Just ask:
 > "根据我的记录，生成下周的训练计划"
 > 
 > "帮我制定一个8周马拉松备赛计划"
-> 
-> "推送计划到我的 Likes 日历"
 
 ## Complete Workflow
 
@@ -83,7 +81,112 @@ Based on analysis, create a plan:
 }
 ```
 
-### Step 4: Push to Calendar
+### Step 4: Preview and Confirm ⭐
+
+**Always review before pushing!**
+
+```bash
+node scripts/preview_plan.cjs plans.json
+```
+
+This displays:
+- 📅 Day-by-day training schedule
+- 📊 Weekly summary
+- 🏃 Type distribution
+- ⚡ Intensity breakdown
+
+Then asks for confirmation:
+- `[Y]` Confirm and proceed to push
+- `[N]` Cancel
+- `[E]` Edit the plan file first
+
+### Step 5: Push to Calendar
+
+After confirmation:
+
+```bash
+node scripts/push_plans.cjs plans.json
+```
+
+**Complete workflow with preview:**
+```bash
+# 1. Fetch & analyze
+node scripts/fetch_activities.cjs --days 30 --output data.json
+node scripts/analyze_data.cjs data.json
+
+# 2. (Create plan.json based on analysis)
+
+# 3. Preview & confirm
+node scripts/preview_plan.cjs plan.json
+
+# 4. Push if confirmed
+node scripts/push_plans.cjs plan.json
+```
+
+## Review Workflow for Users
+
+When generating plans for users, **always follow this process**:
+
+### 1. Generate Plan
+Create the plan based on user's goals and historical data.
+
+### 2. Preview
+Show the plan using `preview_plan.cjs` or format it nicely:
+
+```
+📋 训练计划预览 - 第1周
+════════════════════════════════════════════════════════════
+
+1. 2026-03-10 周一
+   📌 轻松有氧3公里
+   📝 3km@(PACE+10'00~9'00)
+   🏃 类型: 轻松跑
+   ⚡ 强度: 🟢 低强度
+   💭 周一起步，按习惯配速轻松完成
+
+2. 2026-03-11 周二
+   📌 走跑交替
+   📝 【3min@(HRR+2.0~3.0);2min@(HRR+1.0~2.0)】×4组
+   ...
+
+📊 计划摘要
+════════════════════════════════════════════════════════════
+总训练日: 7 天
+按类型: 轻松跑: 3 次, 间歇训练: 1 次, 长距离: 1 次
+按强度: 🟢 低强度: 5 次, 🟠 中强度: 2 次
+```
+
+### 3. Ask for Confirmation
+Present the plan to user and ask:
+
+> "以上是为您生成的下周训练计划，请审核：
+> 
+> - 周一、周二、周三...（简述内容）
+> - 总里程约 XX 公里
+> - 包含 X 次高强度训练
+>
+> 是否需要调整？
+> - ✅ 确认无误，推送到日历
+> - ✏️ 需要修改（告诉我改哪里）
+> - ❌ 取消"
+
+### 4. Handle Feedback
+
+**If user wants changes:**
+- Ask specifically what to change
+- Modify the plan
+- Show updated preview
+- Repeat until confirmed
+
+**Common change requests:**
+- "周三太忙，改到周四" → Adjust date
+- "间歇太累，换成轻松跑" → Change type from `i` to `qingsong`
+- "周末想跑更长" → Increase duration in `name` field
+- "强度太高" → Change `weight` from `q2` to `q3`
+
+### 5. Push After Confirmation
+
+Only push after explicit user confirmation:
 
 ```bash
 node scripts/push_plans.cjs plans.json
@@ -95,7 +198,8 @@ node scripts/push_plans.cjs plans.json
 |--------|---------|
 | `fetch_activities.cjs` | Download training history from Likes API |
 | `analyze_data.cjs` | Analyze patterns and generate insights |
-| `push_plans.cjs` | Push generated plans to Likes calendar |
+| `preview_plan.cjs` | ⭐ Display plan for user review |
+| `push_plans.cjs` | Push to Likes calendar |
 | `configure.cjs` | Interactive configuration wizard |
 | `set-config.cjs` | Quick config setter |
 
@@ -140,7 +244,7 @@ Format: `task1;task2;...`
 
 ### Duration Units
 - `min` = minutes
-- `s` = seconds  
+- `s` = seconds
 - `m` = meters
 - `km` = kilometers
 - `c` = count/reps
@@ -184,35 +288,22 @@ cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
 node scripts/fetch_activities.cjs --days 14 | node scripts/analyze_data.cjs
 ```
 
-### Create Weekly Plan
+### Create Weekly Plan with Review
 
-Based on analysis results, create `week_plan.json`:
-
-```json
-{
-  "plans": [
-    {
-      "name": "30min@(HRR+1.0~2.0)",
-      "title": "周一轻松跑",
-      "start": "2026-03-10",
-      "weight": "q3",
-      "type": "qingsong",
-      "sports": 1
-    },
-    {
-      "name": "10min@(HRR+1.0~2.0);{1000m@(VDOT+4.0~5.0);2min@(rest)}x4;10min@(HRR+1.0~2.0)",
-      "title": "周三间歇",
-      "start": "2026-03-12",
-      "weight": "q2",
-      "type": "i",
-      "sports": 1
-    }
-  ]
-}
-```
-
-Then push:
 ```bash
+# 1. Fetch data
+node scripts/fetch_activities.cjs --days 14 --output data.json
+
+# 2. Analyze
+node scripts/analyze_data.cjs data.json
+
+# 3. Create plan (week_plan.json)
+# ... edit file ...
+
+# 4. Preview
+node scripts/preview_plan.cjs week_plan.json
+
+# 5. Push after confirmation
 node scripts/push_plans.cjs week_plan.json
 ```
 
