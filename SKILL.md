@@ -14,45 +14,154 @@ metadata:
 
 # Likes Training Planner
 
-Generate training plans compatible with My Likes platform and push them to user's calendar.
+Complete training plan solution for My Likes platform. **One skill does it all**: fetch data → analyze → generate → push.
 
 ## Quick Start
 
-### 1. Generate a Training Plan
+### 1. Configure API Key
 
-Ask the user for:
-- Goal (marathon prep, fat loss, base building, etc.)
-- Duration (weeks)
-- Weekly frequency (3-5 days)
-- Available days (Mon, Wed, Fri, etc.)
-- Current fitness level
+**OpenClaw Skill Center (Recommended):**
+1. Open http://127.0.0.1:18789 → Skills
+2. Find "likes-training-planner" 🏃
+3. Click Configure, enter your Likes API Key
+4. Save
 
-### 2. Format for Likes API
+Get API Key: https://my.likes.com.cn → 设置 → API 文档
 
-Convert the plan to Likes-compatible JSON format. Each session needs:
-- `name`: Training code following Likes format (see references/code-format.md)
-- `title`: Display name (max 20 chars)
-- `start`: Date in YYYY-MM-DD format
-- `weight`: Intensity marker (q1/q2/q3/xuanxiu)
-- `type`: Training type (qingsong, xiuxi, e, lsd, m, t, i, r, ft, com, ch, jili, max, drift, other)
-- `sports`: 1=running, 2=cycling, 3=strength, 5=swimming, 254=other
-- `description`: Optional notes
+### 2. Use the Skill
 
-### 3. Push to Likes
+Just ask:
+> "分析我过去30天的运动数据"
+> 
+> "根据我的记录，生成下周的训练计划"
+> 
+> "帮我制定一个8周马拉松备赛计划"
 
-Use the push script:
+## Complete Workflow
+
+### Step 1: Fetch Data
+
 ```bash
-./likes-training-planner/scripts/push_plans.sh <api_key> <plans.json>
+# Fetch activities (rate limit: 1 req/min, max 30 days)
+node scripts/fetch_activities.cjs --days 7 --output data.json
+
+# Fetch plans for next 42 days
+node scripts/fetch_plans.cjs --start 2026-03-01 --output plans.json
+
+# Fetch training feedback
+node scripts/fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07
+
+# Fetch your training camps
+node scripts/fetch_games.cjs --output camps.json
+
+# Fetch camp details and members
+node scripts/fetch_game.cjs --game-id 973 --output camp_details.json
 ```
 
-Or call from Node.js - see scripts/push_plans.js
+### Step 2: Analyze
+
+```bash
+node scripts/analyze_data.cjs data.json
+```
+
+Output includes:
+- Total runs, distance, time
+- Average pace, frequency
+- Training characteristics
+- Personalized recommendations
+
+### Step 3: Generate Plan
+
+Based on analysis, create a plan:
+```json
+{
+  "plans": [
+    {
+      "name": "40min@(HRR+1.0~2.0)",
+      "title": "轻松有氧跑",
+      "start": "2026-03-10",
+      "weight": "q3",
+      "type": "qingsong",
+      "sports": 1,
+      "description": "根据近期数据，保持有氧基础"
+    }
+  ]
+}
+```
+
+### Step 4: Push to Calendar
+
+**Push to yourself:**
+```bash
+node scripts/push_plans.cjs plans.json
+```
+
+**Push to specific user(s):**
+```bash
+node scripts/push_plans.cjs plans.json --user-ids 123
+```
+
+**Bulk push to training camp members (coach only):**
+```bash
+node scripts/push_plans.cjs plans.json --game-id 973 --user-ids "4,5,6"
+```
+
+## API Scripts Reference
+
+| Script | Purpose | Rate Limit |
+|--------|---------|------------|
+| `fetch_activities.cjs` | Download training history | 1 req/min, max 30 days |
+| `fetch_plans.cjs` | Get calendar plans (42 days) | Standard |
+| `fetch_feedback.cjs` | Get training feedback | Standard |
+| `fetch_games.cjs` | List your training camps | Standard |
+| `fetch_game.cjs` | Get camp details & members | Coach only |
+| `analyze_data.cjs` | Analyze patterns | N/A |
+| `push_plans.cjs` | Push plans (supports bulk) | Standard |
+| `configure.cjs` | Interactive setup | N/A |
+| `set-config.cjs` | Quick config setter | N/A |
+
+## fetch_activities.cjs Options
+
+```bash
+node scripts/fetch_activities.cjs [options]
+
+Options:
+  --days <n>        Number of days (default: 7, max: 30)
+  --start <date>    Start date (YYYY-MM-DD)
+  --end <date>      End date (YYYY-MM-DD, max 30 days from start)
+  --user-id <id>    Query specific user (coach only)
+  --page <n>        Page number (default: 1)
+  --limit <n>       Items per page (default: 200, max: 2000)
+  --order-by <field> Sort: sign_date, run_km, run_time, tss
+  --order <asc|desc> Sort order (default: desc)
+  --output <file>   Output file
+```
+
+## push_plans.cjs Options
+
+```bash
+node scripts/push_plans.cjs <plans.json> [options]
+
+Options:
+  --key <api_key>    Use specific API key
+  --game-id <id>     Training camp ID (for bulk push)
+  --user-ids <ids>   Comma-separated user IDs (e.g., "4,5,6")
+  --dry-run          Preview without pushing
+```
+
+**Bulk Push Requirements:**
+- Must provide `game_id` when using `user_ids`
+- You must be creator or coach of the camp
+- All user_ids must be camp members
+- Max 200 plans per request
 
 ## Training Code Format (name field)
 
 Format: `task1;task2;...`
 
 **Basic task**: `duration@(type+range)`
-- Examples: `30min@(HRR+1.0~2.0)`, `5km@(PACE+5'00~4'30)`
+- `30min@(HRR+1.0~2.0)` - 30 min easy run
+- `5km@(PACE+5'00~4'30)` - 5km with pace target
 
 **Interval group**: `{task1;task2}xN`
 - Example: `{5min@(HRR+3.0~4.0);1min@(rest)}x3`
@@ -104,6 +213,7 @@ Format: `task1;task2;...`
 | max | Max HR test |
 | drift | Aerobic stability test |
 | other | Other |
+| 1/7/2/3/4/5/6 | 1.6km/2km/3km/5km/10km/HM/FM test |
 
 ## Intensity Weights
 
@@ -114,34 +224,48 @@ Format: `task1;task2;...`
 | q3 | Green | Low intensity |
 | xuanxiu | Blue | Optional/recovery |
 
-## Example Plan Generation
+## Example Usage
 
-**Input**: "I need a 4-week base building plan, 4 days/week, easy pace"
+### Coach: Bulk Push to Camp Members
 
-**Output** (JSON for API):
-```json
-{
-  "plans": [
-    {
-      "name": "40min@(HRR+1.0~2.0)",
-      "title": "轻松有氧跑",
-      "start": "2025-03-01",
-      "weight": "q3",
-      "type": "qingsong",
-      "sports": 1,
-      "description": "Week 1 - Day 1: 基础有氧"
-    }
-  ]
-}
+```bash
+# 1. Get your camps
+node scripts/fetch_games.cjs
+
+# 2. Get camp members
+node scripts/fetch_game.cjs --game-id 973
+
+# 3. Create plan for members
+# ... edit plan.json ...
+
+# 4. Bulk push to specific members
+node scripts/push_plans.cjs plan.json --game-id 973 --user-ids "4,5,6"
 ```
+
+### Analyze and Generate in One Go
+
+```bash
+# Fetch and analyze
+cd /opt/homebrew/lib/node_modules/openclaw/skills/likes-training-planner
+node scripts/fetch_activities.cjs --days 14 | node scripts/analyze_data.cjs
+```
+
+## Configuration
+
+### Priority (highest to lowest):
+1. Command line `--key`
+2. Environment variable `LIKES_API_KEY`
+3. OpenClaw config: `skills.likes-training-planner.apiKey`
+4. User config: `~/.openclaw/likes-training-planner.json`
 
 ## References
 
+- **API documentation**: See [references/api-docs.md](references/api-docs.md)
 - **Code format details**: See [references/code-format.md](references/code-format.md)
 - **Sport-specific examples**: See [references/sport-examples.md](references/sport-examples.md)
-- **API documentation**: See [references/api-docs.md](references/api-docs.md)
 
-## Scripts
+## Installation
 
-- `scripts/push_plans.js` - Push plans to Likes API
-- `scripts/push_plans.sh` - Wrapper script for convenience
+```bash
+curl -fsSL https://raw.githubusercontent.com/chenwynn/likes-training-planner/main/install.sh | bash
+```
