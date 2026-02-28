@@ -125,12 +125,30 @@ Fetch user training feedback. Date range max 7 days.
       "user_id": 4,
       "content": "训练感觉不错",
       "plan_title": "有氧训练",
+      "plan_content": "10min@(HRR+1.0~2.0);40min@(HRR+2.0~3.0);10min@(HRR+1.0~2.0)",
+      "activity": {
+        "run_km": 8.5,
+        "run_time": 3600,
+        "score": 85
+      },
       "coach_comment": false,
       "created_time": 1757249735
     }
   ]
 }
 ```
+
+**Response Fields:**
+| Field | Description |
+|-------|-------------|
+| `id` | Feedback ID |
+| `user_id` | Trainee user ID |
+| `content` | Trainee's feedback text |
+| `plan_title` | Title of the planned workout |
+| `plan_content` | Course code/segments for coach reference |
+| `activity` | Linked workout overview with system `score` |
+| `coach_comment` | Whether coach has commented (true/false) |
+| `created_time` | Timestamp when feedback was created |
 
 ### 4. Push Training Plans (Batch Write)
 
@@ -213,7 +231,7 @@ When `user_ids` is provided, you must also provide `game_id`. Requirements:
 
 **POST /api/open/feedback/comment**
 
-Coach adds a comment to a trainee's training feedback. Current user must be in qw_member (coach). user_id and uid are automatically taken from your API key session.
+Coach adds a comment to a trainee's training feedback. Current user must be a coach; identity is determined by the server.
 
 **Headers:**
 - `X-API-Key`: Your API key
@@ -231,9 +249,9 @@ Coach adds a comment to a trainee's training feedback. Current user must be in q
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | content | string | Yes | Comment content / training advice |
-| feedback_id | integer | Yes | Trainee's training feedback id (qw_task_feedback.id) |
+| feedback_id | integer | Yes | The training feedback id (from list_feedback rows) |
 
-**Note:** user_id and uid are automatically taken from your API key session and qw_member on the server.
+**Note:** Coach identity is automatically determined by the server based on your API key.
 
 **Response:**
 ```json

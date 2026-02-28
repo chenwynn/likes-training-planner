@@ -48,11 +48,8 @@ node scripts/fetch_activities.cjs --days 7 --output data.json
 # Fetch plans for next 42 days
 node scripts/fetch_plans.cjs --start 2026-03-01 --output plans.json
 
-# Fetch training feedback (max 7 days, includes coach_comment status)
+# Fetch training feedback
 node scripts/fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07
-
-# Fetch multiple trainees' feedback (coach only)
-node scripts/fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07 --user-ids "4,5,6"
 
 # Fetch your training camps
 node scripts/fetch_games.cjs --output camps.json
@@ -115,7 +112,7 @@ node scripts/push_plans.cjs plans.json --game-id 973 --user-ids "4,5,6"
 |--------|---------|------------|
 | `fetch_activities.cjs` | Download training history | 1 req/min, max 30 days |
 | `fetch_plans.cjs` | Get calendar plans (42 days) | Standard |
-| `fetch_feedback.cjs` | Get training feedback | Standard |
+| `fetch_feedback.cjs` | Get training feedback (includes plan_title, plan_content, activity, coach_comment) | Standard |
 | `fetch_games.cjs` | List your training camps | Standard |
 | `fetch_game.cjs` | Get camp details & members | Coach only |
 | `analyze_data.cjs` | Analyze patterns | N/A |
