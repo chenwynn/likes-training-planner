@@ -103,7 +103,7 @@ Fetch calendar plans for next 42 days from start date.
 
 **GET /api/open/feedback**
 
-Fetch user training feedback. Date range max 30 days.
+Fetch user training feedback. Date range max 7 days.
 
 **Headers:**
 - `X-API-Key`: Your API key
@@ -112,7 +112,8 @@ Fetch user training feedback. Date range max 30 days.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | start | string | Yes | Start date (YYYY-MM-DD) |
-| end | string | Yes | End date (YYYY-MM-DD, max 30 days from start) |
+| end | string | Yes | End date (YYYY-MM-DD, max 7 days from start) |
+| user_ids | string | No | Comma-separated user IDs (e.g., "4,5,6") for coach to query multiple trainees |
 
 **Response:**
 ```json
@@ -124,6 +125,7 @@ Fetch user training feedback. Date range max 30 days.
       "user_id": 4,
       "content": "训练感觉不错",
       "plan_title": "有氧训练",
+      "coach_comment": false,
       "created_time": 1757249735
     }
   ]

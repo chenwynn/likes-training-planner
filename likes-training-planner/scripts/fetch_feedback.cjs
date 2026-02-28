@@ -2,15 +2,15 @@
 /**
  * Fetch training feedback from Likes API
  * GET /api/open/feedback
- * Returns user feedback for a date range (max 30 days)
+ * Returns user feedback for a date range (max 7 days)
  * Each feedback includes coach_comment: true/false indicating if coach has commented
  * Usage: node fetch_feedback.cjs [options]
  * 
  * Options:
- *   --start <date>   Start date, required (YYYY-MM-DD)
- *   --end <date>     End date, required (YYYY-MM-DD, max 30 days from start)
- *   --user-id <id>   User ID to query (optional, for coaches to query trainees)
- *   --output <file>  Output file (default: stdout)
+ *   --start <date>    Start date, required (YYYY-MM-DD)
+ *   --end <date>      End date, required (YYYY-MM-DD, max 7 days from start)
+ *   --user-ids <ids>  Comma-separated user IDs (optional, for coaches to query multiple trainees, e.g., "4,5,6")
+ *   --output <file>   Output file (default: stdout)
  */
 
 const https = require('https');
@@ -61,8 +61,8 @@ function fetchFeedback(apiKey, baseUrl, params) {
     const queryParams = new URLSearchParams();
     queryParams.append('start', params.start);
     queryParams.append('end', params.end);
-    if (params.user_id) {
-      queryParams.append('user_id', params.user_id);
+    if (params.user_ids) {
+      queryParams.append('user_ids', params.user_ids);
     }
     
     const path = `/api/open/feedback?${queryParams.toString()}`;
@@ -112,7 +112,7 @@ function parseArgs() {
   const options = {
     start: null,
     end: null,
-    user_id: null,
+    user_ids: null,
     output: null
   };
   
@@ -123,8 +123,8 @@ function parseArgs() {
     } else if (args[i] === '--end' && i + 1 < args.length) {
       options.end = args[i + 1];
       i++;
-    } else if (args[i] === '--user-id' && i + 1 < args.length) {
-      options.user_id = args[i + 1];
+    } else if (args[i] === '--user-ids' && i + 1 < args.length) {
+      options.user_ids = args[i + 1];
       i++;
     } else if (args[i] === '--output' && i + 1 < args.length) {
       options.output = args[i + 1];
@@ -143,12 +143,13 @@ function showUsage() {
   console.log('  --end <date>     End date (YYYY-MM-DD), max 30 days from start');
   console.log('');
   console.log('Optional:');
-  console.log('  --user-id <id>   Query specific user (coach only)');
-  console.log('  --output <file>  Output file (default: stdout)');
+  console.log('  --user-ids <ids>  Comma-separated user IDs (coach only, e.g., "4,5,6")');
+  console.log('  --output <file>   Output file (default: stdout)');
   console.log('');
   console.log('Examples:');
   console.log('  node fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07');
-  console.log('  node fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07 --user-id 123');
+  console.log('  node fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07 --user-ids 123');
+  console.log('  node fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07 --user-ids "4,5,6"');
 }
 
 async function main() {
@@ -170,8 +171,8 @@ async function main() {
   }
   
   const diffDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
-  if (diffDays > 30) {
-    console.error('❌ Error: Date range exceeds 30 days (API limit)');
+  if (diffDays > 7) {
+    console.error('❌ Error: Date range exceeds 7 days (API limit)');
     process.exit(1);
   }
   
@@ -197,14 +198,14 @@ async function main() {
     end: options.end
   };
   
-  if (options.user_id) {
-    params.user_id = options.user_id;
+  if (options.user_ids) {
+    params.user_ids = options.user_ids;
   }
   
   try {
     console.error(`💬 Fetching feedback from ${options.start} to ${options.end}...`);
-    if (options.user_id) {
-      console.error(`👤 User ID: ${options.user_id}`);
+    if (options.user_ids) {
+      console.error(`👤 User IDs: ${options.user_ids}`);
     }
     
     const result = await fetchFeedback(apiKey, baseUrl, params);
