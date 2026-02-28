@@ -207,7 +207,44 @@ When `user_ids` is provided, you must also provide `game_id`. Requirements:
 - `validate_error`: Field validation failed (not written)
 - `insert_error`: Database error (not written)
 
-### 5. Training Camp Details
+### 5. Add Coach Comment to Feedback
+
+**POST /api/open/feedback/comment**
+
+Coach adds a comment to a trainee's training feedback. Current user must be in qw_member (coach). user_id and uid are automatically taken from your API key session.
+
+**Headers:**
+- `X-API-Key`: Your API key
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "content": "跑得很好，注意拉伸放松",
+  "feedback_id": 227639
+}
+```
+
+**Fields:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| content | string | Yes | Comment content / training advice |
+| feedback_id | integer | Yes | Trainee's training feedback id (qw_task_feedback.id) |
+
+**Note:** user_id and uid are automatically taken from your API key session and qw_member on the server.
+
+**Response:**
+```json
+{
+  "id": 12345,
+  "feedback_id": 227639,
+  "user_id": 4,
+  "content": "跑得很好，注意拉伸放松",
+  "created_time": 1757249735
+}
+```
+
+### 6. Training Camp Details
 
 **GET /api/open/game**
 
@@ -247,7 +284,7 @@ Fetch camp details and member list. Requires creator or coach role.
 }
 ```
 
-### 6. My Training Camps List
+### 7. My Training Camps List
 
 **GET /api/open/games**
 

@@ -48,8 +48,14 @@ node scripts/fetch_activities.cjs --days 7 --output data.json
 # Fetch plans for next 42 days
 node scripts/fetch_plans.cjs --start 2026-03-01 --output plans.json
 
-# Fetch training feedback
+# Fetch training feedback (includes coach_comment status)
 node scripts/fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07
+
+# Fetch trainee's feedback (coach only)
+node scripts/fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07 --user-id 123
+
+# Add coach comment to feedback (user_id/uid auto from session)
+node scripts/add_feedback_comment.cjs --feedback-id 227639 --content "跑得很好，继续加油！"
 
 # Fetch your training camps
 node scripts/fetch_games.cjs --output camps.json
@@ -112,7 +118,8 @@ node scripts/push_plans.cjs plans.json --game-id 973 --user-ids "4,5,6"
 |--------|---------|------------|
 | `fetch_activities.cjs` | Download training history | 1 req/min, max 30 days |
 | `fetch_plans.cjs` | Get calendar plans (42 days) | Standard |
-| `fetch_feedback.cjs` | Get training feedback | Standard |
+| `fetch_feedback.cjs` | Get training feedback (with coach_comment) | Standard |
+| `add_feedback_comment.cjs` | Coach add comment to feedback | Standard |
 | `fetch_games.cjs` | List your training camps | Standard |
 | `fetch_game.cjs` | Get camp details & members | Coach only |
 | `analyze_data.cjs` | Analyze patterns | N/A |
@@ -154,6 +161,23 @@ Options:
 - You must be creator or coach of the camp
 - All user_ids must be camp members
 - Max 200 plans per request
+
+## add_feedback_comment.cjs Options
+
+```bash
+node scripts/add_feedback_comment.cjs --feedback-id <id> --content <text>
+
+Required:
+  --feedback-id <id>   Trainee's feedback ID to comment on
+  --content <text>     Comment content / training advice
+
+Example:
+  node add_feedback_comment.cjs --feedback-id 227639 --content "跑得很好，注意拉伸放松"
+```
+
+**Note:** 
+- You must be the trainee's coach (camp editor/coach) to add comments
+- Your user_id and uid are automatically taken from your API key session
 
 ## Training Code Format (name field)
 

@@ -3,11 +3,13 @@
  * Fetch training feedback from Likes API
  * GET /api/open/feedback
  * Returns user feedback for a date range (max 30 days)
+ * Each feedback includes coach_comment: true/false indicating if coach has commented
  * Usage: node fetch_feedback.cjs [options]
  * 
  * Options:
  *   --start <date>   Start date, required (YYYY-MM-DD)
  *   --end <date>     End date, required (YYYY-MM-DD, max 30 days from start)
+ *   --user-id <id>   User ID to query (optional, for coaches to query trainees)
  *   --output <file>  Output file (default: stdout)
  */
 
@@ -59,6 +61,9 @@ function fetchFeedback(apiKey, baseUrl, params) {
     const queryParams = new URLSearchParams();
     queryParams.append('start', params.start);
     queryParams.append('end', params.end);
+    if (params.user_id) {
+      queryParams.append('user_id', params.user_id);
+    }
     
     const path = `/api/open/feedback?${queryParams.toString()}`;
     
@@ -107,6 +112,7 @@ function parseArgs() {
   const options = {
     start: null,
     end: null,
+    user_id: null,
     output: null
   };
   
@@ -116,6 +122,9 @@ function parseArgs() {
       i++;
     } else if (args[i] === '--end' && i + 1 < args.length) {
       options.end = args[i + 1];
+      i++;
+    } else if (args[i] === '--user-id' && i + 1 < args.length) {
+      options.user_id = args[i + 1];
       i++;
     } else if (args[i] === '--output' && i + 1 < args.length) {
       options.output = args[i + 1];
@@ -134,10 +143,12 @@ function showUsage() {
   console.log('  --end <date>     End date (YYYY-MM-DD), max 30 days from start');
   console.log('');
   console.log('Optional:');
+  console.log('  --user-id <id>   Query specific user (coach only)');
   console.log('  --output <file>  Output file (default: stdout)');
   console.log('');
-  console.log('Example:');
+  console.log('Examples:');
   console.log('  node fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07');
+  console.log('  node fetch_feedback.cjs --start 2026-03-01 --end 2026-03-07 --user-id 123');
 }
 
 async function main() {
@@ -186,10 +197,21 @@ async function main() {
     end: options.end
   };
   
+  if (options.user_id) {
+    params.user_id = options.user_id;
+  }
+  
   try {
     console.error(`💬 Fetching feedback from ${options.start} to ${options.end}...`);
+    if (options.user_id) {
+      console.error(`👤 User ID: ${options.user_id}`);
+    }
     
     const result = await fetchFeedback(apiKey, baseUrl, params);
+    
+    const feedbacks = result.rows || [];
+    const commentedCount = feedbacks.filter(f => f.coach_comment).length;
+    const unCommentedCount = feedbacks.length - commentedCount;
     
     const output = {
       fetchedAt: new Date().toISOString(),
@@ -198,7 +220,9 @@ async function main() {
         end: options.end
       },
       total: result.total || 0,
-      feedback: result.rows || []
+      coachCommented: commentedCount,
+      needsComment: unCommentedCount,
+      feedback: feedbacks
     };
     
     const jsonOutput = JSON.stringify(output, null, 2);
@@ -206,6 +230,8 @@ async function main() {
     if (options.output) {
       fs.writeFileSync(options.output, jsonOutput);
       console.error(`✅ Fetched ${result.total || 0} feedback entries`);
+      console.error(`💬 Coach commented: ${commentedCount}`);
+      console.error(`📝 Needs comment: ${unCommentedCount}`);
       console.error(`📁 Saved to: ${options.output}`);
     } else {
       console.log(jsonOutput);
