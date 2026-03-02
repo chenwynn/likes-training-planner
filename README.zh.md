@@ -1,8 +1,6 @@
 # Likes Training Planner Skill 🏃
 
-**[English](README.en.md)** | 中文
-
----
+[English](README.en.md) | 中文
 
 **My Likes 平台一站式训练计划解决方案**
 
