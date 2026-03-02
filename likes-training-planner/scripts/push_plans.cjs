@@ -9,6 +9,7 @@
  *   --key <api_key>     Use specific API key
  *   --game-id <id>      Training camp ID (for bulk push to camp members)
  *   --user-ids <ids>    Comma-separated user IDs for bulk push (e.g., "4,5,6")
+ *   --overwrite         Overwrite existing plans (replace instead of duplicate)
  *   --dry-run           Preview without actually pushing
  */
 
@@ -63,6 +64,11 @@ function pushPlans(apiKey, baseUrl, plansData, options = {}) {
     
     if (options.user_ids && options.user_ids.length > 0) {
       requestBody.user_ids = options.user_ids;
+    }
+    
+    // Add overwrite flag
+    if (options.overwrite) {
+      requestBody.overwrite = true;
     }
     
     const postData = JSON.stringify(requestBody);
@@ -131,6 +137,7 @@ function showUsage() {
   console.log('  --key <api_key>     Use specific API key');
   console.log('  --game-id <id>      Training camp ID (for bulk push)');
   console.log('  --user-ids <ids>    Comma-separated user IDs (e.g., "4,5,6")');
+  console.log('  --overwrite         Overwrite existing plans (replace instead of duplicate)');
   console.log('  --dry-run           Preview without pushing');
   console.log('  --help              Show this help');
   console.log('');
@@ -143,6 +150,9 @@ function showUsage() {
   console.log('');
   console.log('  # Bulk push to multiple camp members:');
   console.log('  node push_plans.cjs plans.json --game-id 973 --user-ids "4,5,6"');
+  console.log('');
+  console.log('  # Overwrite existing plans (replace instead of duplicate):');
+  console.log('  node push_plans.cjs plans.json --game-id 973 --user-ids "4,5,6" --overwrite');
 }
 
 async function main() {
@@ -158,6 +168,7 @@ async function main() {
   const options = {
     game_id: null,
     user_ids: null,
+    overwrite: false,
     dry_run: false
   };
   
@@ -173,6 +184,8 @@ async function main() {
       // Parse comma-separated user IDs
       options.user_ids = args[i + 1].split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
       i++;
+    } else if (args[i] === '--overwrite') {
+      options.overwrite = true;
     } else if (args[i] === '--dry-run') {
       options.dry_run = true;
     } else if (!plansFile && !args[i].startsWith('--')) {
@@ -250,6 +263,10 @@ async function main() {
     console.log(`   Users: ${options.user_ids.join(', ')}`);
   } else {
     console.log(`📋 Mode: Push to yourself (current API key user)`);
+  }
+  
+  if (options.overwrite) {
+    console.log(`🔄 Overwrite: Enabled (will replace existing plans)`);
   }
   
   if (options.dry_run) {

@@ -45,6 +45,9 @@ Just ask:
 # Fetch activities (rate limit: 1 req/min, max 30 days)
 node scripts/fetch_activities.cjs --days 7 --output data.json
 
+# Get activity detail (with GPS data)
+node scripts/get_activity_detail.cjs --id 12345 --mode detailed
+
 # Fetch plans for next 42 days
 node scripts/fetch_plans.cjs --start 2026-03-01 --output plans.json
 
@@ -111,12 +114,13 @@ node scripts/push_plans.cjs plans.json --game-id 973 --user-ids "4,5,6"
 | Script | Purpose | Rate Limit |
 |--------|---------|------------|
 | `fetch_activities.cjs` | Download training history | 1 req/min, max 30 days |
+| `get_activity_detail.cjs` | Get single activity detail (with GPS) | Standard |
 | `fetch_plans.cjs` | Get calendar plans (42 days) | Standard |
-| `fetch_feedback.cjs` | Get training feedback (includes plan_title, plan_content, activity, coach_comment) | Standard |
+| `fetch_feedback.cjs` | Get training feedback | Standard |
 | `fetch_games.cjs` | List your training camps | Standard |
 | `fetch_game.cjs` | Get camp details & members | Coach only |
 | `analyze_data.cjs` | Analyze patterns | N/A |
-| `push_plans.cjs` | Push plans (supports bulk) | Standard |
+| `push_plans.cjs` | Push plans (supports bulk, overwrite) | Standard |
 | `configure.cjs` | Interactive setup | N/A |
 | `set-config.cjs` | Quick config setter | N/A |
 
@@ -135,6 +139,24 @@ Options:
   --order-by <field> Sort: sign_date, run_km, run_time, tss
   --order <asc|desc> Sort order (default: desc)
   --output <file>   Output file
+```
+
+## get_activity_detail.cjs Options
+
+```bash
+node scripts/get_activity_detail.cjs --id <activity_id> [options]
+
+Required:
+  --id <activity_id>   Activity ID (from list_activities)
+
+Optional:
+  --mode <mode>        overview (default) or detailed (includes GPS)
+  --output <file>      Output file (default: stdout)
+
+Examples:
+  node get_activity_detail.cjs --id 12345
+  node get_activity_detail.cjs --id 12345 --mode detailed
+  node get_activity_detail.cjs --id 12345 --mode detailed --output activity.json
 ```
 
 ## push_plans.cjs Options
