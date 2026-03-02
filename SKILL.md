@@ -16,6 +16,17 @@ metadata:
 
 Complete training plan solution for My Likes platform. **One skill does it all**: fetch data → analyze → generate → push.
 
+## 🤖 Bot 自动路由（多Bot支持）
+
+本Skill支持多个Telegram Bot自动路由，不同Bot有不同的专注领域：
+
+| Bot | 角色 | 专注功能 |
+|-----|------|---------|
+| **@likes_training_bot** | 训练分析师 | 数据分析、反馈点评 |
+| **@likes_traning_2_bot** | 训练计划师 | 计划制定、推送日历 |
+
+系统会自动识别当前使用的Bot，提供对应的功能和交互体验。
+
 ## Quick Start
 
 ### 1. Configure API Key
@@ -44,9 +55,6 @@ Just ask:
 ```bash
 # Fetch activities (rate limit: 1 req/min, max 30 days)
 node scripts/fetch_activities.cjs --days 7 --output data.json
-
-# Get activity detail (with GPS data)
-node scripts/get_activity_detail.cjs --id 12345 --mode detailed
 
 # Fetch plans for next 42 days
 node scripts/fetch_plans.cjs --start 2026-03-01 --output plans.json
@@ -114,13 +122,12 @@ node scripts/push_plans.cjs plans.json --game-id 973 --user-ids "4,5,6"
 | Script | Purpose | Rate Limit |
 |--------|---------|------------|
 | `fetch_activities.cjs` | Download training history | 1 req/min, max 30 days |
-| `get_activity_detail.cjs` | Get single activity detail (with GPS) | Standard |
 | `fetch_plans.cjs` | Get calendar plans (42 days) | Standard |
 | `fetch_feedback.cjs` | Get training feedback | Standard |
 | `fetch_games.cjs` | List your training camps | Standard |
 | `fetch_game.cjs` | Get camp details & members | Coach only |
 | `analyze_data.cjs` | Analyze patterns | N/A |
-| `push_plans.cjs` | Push plans (supports bulk, overwrite) | Standard |
+| `push_plans.cjs` | Push plans (supports bulk) | Standard |
 | `configure.cjs` | Interactive setup | N/A |
 | `set-config.cjs` | Quick config setter | N/A |
 
@@ -139,24 +146,6 @@ Options:
   --order-by <field> Sort: sign_date, run_km, run_time, tss
   --order <asc|desc> Sort order (default: desc)
   --output <file>   Output file
-```
-
-## get_activity_detail.cjs Options
-
-```bash
-node scripts/get_activity_detail.cjs --id <activity_id> [options]
-
-Required:
-  --id <activity_id>   Activity ID (from list_activities)
-
-Optional:
-  --mode <mode>        overview (default) or detailed (includes GPS)
-  --output <file>      Output file (default: stdout)
-
-Examples:
-  node get_activity_detail.cjs --id 12345
-  node get_activity_detail.cjs --id 12345 --mode detailed
-  node get_activity_detail.cjs --id 12345 --mode detailed --output activity.json
 ```
 
 ## push_plans.cjs Options
